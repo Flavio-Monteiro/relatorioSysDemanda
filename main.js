@@ -147,18 +147,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const suggestions = [];
         
         if (saleRate < 70) {
-            suggestions.push(`Ajuste sua produção: Reduza em ${Math.round(remaining * 1.2)} unidades na próxima fornada para este horário.`);
+            suggestions.push(`Ajuste sua produção: Reduza em ${Math.round(remaining * 1.2)} unidades na próxima fornada.`);
             suggestions.push(`Considere fazer promoções relâmpago para produtos que estão sobrando.`);
         } else if (saleRate < 85) {
-            suggestions.push(`Ajuste fino: Reduza em ${Math.round(remaining)} unidades na próxima fornada para este horário.`);
+            suggestions.push(`Ajuste fino: Reduza em ${Math.round(remaining)} unidades na próxima fornada.`);
         } else if (saleRate < 95) {
-            suggestions.push(`Você está quase no ponto ideal! Ajuste de apenas ${Math.round(remaining * 0.5)} unidades pode otimizar sua produção.`);
+            suggestions.push(`Você está quase no ponto ideal! Ajuste de apenas ${Math.round(remaining * 0.5)} unidades pode otimizar.`);
         }
         
         suggestions.push(`Sobras atuais podem ser transformadas em torradas, farinha de rosca ou doações.`);
         
         if (remaining > totalProduced * 0.3) {
-            suggestions.push(`<strong>ATENÇÃO:</strong> Você está produzindo ${Math.round((remaining / totalProduced) * 100)}% a mais do que vende. Reavalie sua produção.`);
+            suggestions.push(`<strong>ATENÇÃO:</strong> Produzindo ${Math.round((remaining / totalProduced) * 100)}% a mais do que vende. Reavalie.`);
         }
         
         return suggestions.map(s => `<div class="suggestion-item">${s}</div>`).join('');
@@ -173,12 +173,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
             <td>${newRowNum}</td>
-            <td><input type="time" class="production-time"></td>
-            <td><input type="number" class="produced" min="0" step="1"></td>
-            <td><input type="number" class="crispness" min="0" step="0.1"></td>
-            <td><input type="number" class="sold" min="0" step="1"></td>
+            <td><input type="time" class="form-control production-time"></td>
+            <td><input type="number" class="form-control produced" min="0" step="1"></td>
+            <td><input type="number" class="form-control crispness" min="0" step="0.1"></td>
+            <td><input type="number" class="form-control sold" min="0" step="1"></td>
             <td class="remaining">0</td>
-            <td><input type="text" class="notes"></td>
+            <td><input type="text" class="form-control notes"></td>
         `;
         
         tbody.appendChild(newRow);
@@ -249,11 +249,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Feedback visual
         const saveBtn = document.getElementById('save-data');
-        saveBtn.textContent = 'Dados Salvos!';
+        saveBtn.textContent = 'Salvo!';
         saveBtn.style.backgroundColor = '#2e7d32';
         setTimeout(() => {
-            saveBtn.textContent = 'Salvar Dados';
-            saveBtn.style.backgroundColor = '#4CAF50';
+            saveBtn.textContent = 'Salvar';
+            saveBtn.style.backgroundColor = '';
         }, 2000);
     }
     
@@ -302,31 +302,28 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = savedData[date];
             
             let html = `
-                <div class="summary">
-                    <h3>Dados de ${date} (${data.day})</h3>
-                    <div class="summary-item">
-                        <span>Temperatura:</span>
-                        <span>${data.temperature || 'N/A'}°C</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Promoção Ativa:</span>
-                        <span>${data.promotion || 'N/A'}</span>
-                    </div>
+                <h3>Dados de ${date} (${data.day})</h3>
+                <div class="summary-item">
+                    <span>Temperatura:</span>
+                    <span>${data.temperature || 'N/A'}°C</span>
+                </div>
+                <div class="summary-item">
+                    <span>Promoção Ativa:</span>
+                    <span>${data.promotion || 'N/A'}</span>
                 </div>
                 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nº Formada</th>
-                            <th>Hora</th>
-                            <th>Produzido</th>
-                            <th>Crocância</th>
-                            <th>Vendido</th>
-                            <th>Sobrando</th>
-                            <th>Observações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div class="table-responsive" style="margin-top: 15px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Hora</th>
+                                <th>Produzido</th>
+                                <th>Vendido</th>
+                                <th>Sobrando</th>
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
             
             let totalProduced = 0;
@@ -343,10 +340,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${batch.batchNumber}</td>
                         <td>${batch.productionTime || '-'}</td>
                         <td>${batch.produced || '0'}</td>
-                        <td>${batch.crispness || '0'}</td>
                         <td>${batch.sold || '0'}</td>
-                        <td>${batch.remaining || '0'}</td>
-                        <td>${batch.notes || '-'}</td>
+                        <td class="${batch.remaining > 0 ? 'highlight' : 'positive'}">${batch.remaining || '0'}</td>
                     </tr>
                 `;
             });
@@ -354,11 +349,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const saleRate = totalProduced > 0 ? (totalSold / totalProduced * 100).toFixed(1) : 0;
             
             html += `
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
                 
-                <div class="summary">
-                    <h3>Resumo</h3>
+                <div style="margin-top: 15px;">
                     <div class="summary-item">
                         <span>Total Produzido:</span>
                         <span>${totalProduced}</span>
@@ -380,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             historyContent.innerHTML = html;
         } else {
-            historyContent.innerHTML = `<p>Nenhum dado encontrado para ${date}.</p>`;
+            historyContent.innerHTML = `<div class="alert alert-info">Nenhum dado encontrado para ${date}</div>`;
         }
     }
     
@@ -445,13 +440,11 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Produção vs Vendas (Últimos 7 dias)',
-                        font: {
-                            size: 16
-                        }
+                        text: 'Produção vs Vendas (Últimos 7 dias)'
                     },
                     tooltip: {
                         callbacks: {
@@ -500,13 +493,11 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Evolução das Sobras (Últimos 7 dias)',
-                        font: {
-                            size: 16
-                        }
+                        text: 'Evolução das Sobras (Últimos 7 dias)'
                     },
                     tooltip: {
                         callbacks: {
@@ -564,28 +555,6 @@ document.addEventListener('DOMContentLoaded', function() {
             suggestions.push(`Sua eficiência média é de ${avgEfficiency.toFixed(1)}%. Melhore o ajuste entre produção e demanda para reduzir desperdícios.`);
         } else {
             suggestions.push(`Ótima eficiência média de ${avgEfficiency.toFixed(1)}%! Continue monitorando para manter esse desempenho.`);
-        }
-        
-        // Sugestão 4: Padrões por dia da semana
-        if (dates.length >= 14) { // Pelo menos 2 semanas de dados
-            const dayOfWeekStats = {};
-            
-            dates.forEach((date, index) => {
-                const day = new Date(date).getDay();
-                if (!dayOfWeekStats[day]) {
-                    dayOfWeekStats[day] = { production: [], waste: [] };
-                }
-                dayOfWeekStats[day].production.push(productionData[index]);
-                dayOfWeekStats[day].waste.push(wasteData[index]);
-            });
-            
-            for (const day in dayOfWeekStats) {
-                const avgDayWaste = dayOfWeekStats[day].waste.reduce((a, b) => a + b, 0) / dayOfWeekStats[day].waste.length;
-                if (avgDayWaste > avgWaste * 1.3) {
-                    const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                    suggestions.push(`<strong>${dayNames[day]}:</strong> Costuma ter mais sobras que a média (${avgDayWaste.toFixed(0)} unidades). Ajuste sua produção neste dia.`);
-                }
-            }
         }
         
         dataSuggestions.innerHTML = suggestions.map(s => `<div class="suggestion-item">${s}</div>`).join('');
@@ -653,78 +622,85 @@ document.addEventListener('DOMContentLoaded', function() {
     // Exportar para PDF
     function exportToPDF() {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
         
         // Título
-        doc.setFontSize(18);
+        doc.setFontSize(16);
         doc.text('Relatório de Produção de Pão Francês', 105, 15, { align: 'center' });
         
         // Metadados
-        doc.setFontSize(12);
-        doc.text(`Data: ${document.getElementById('date').value}`, 14, 25);
-        doc.text(`Dia da semana: ${document.getElementById('day').value}`, 14, 32);
-        doc.text(`Temperatura Ambiente: ${document.getElementById('temperature').value || 'N/A'}°C`, 14, 39);
-        doc.text(`Promoção Ativa: ${document.querySelector('input[name="promotion"]:checked').value}`, 14, 46);
+        doc.setFontSize(10);
+        doc.text(`Data: ${document.getElementById('date').value}`, 20, 25);
+        doc.text(`Dia da semana: ${document.getElementById('day').value}`, 20, 30);
+        doc.text(`Temperatura: ${document.getElementById('temperature').value || 'N/A'}°C`, 20, 35);
+        doc.text(`Promoção Ativa: ${document.querySelector('input[name="promotion"]:checked').value}`, 20, 40);
         
-        // Tabela de produção
+        // Tabela de produção (simplificada para mobile)
         doc.autoTable({
-            startY: 55,
-            head: [['Nº', 'Hora', 'Produzido', 'Crocância', 'Vendido', 'Sobrando', 'Observações']],
+            startY: 45,
+            head: [['Nº', 'Hora', 'Produzido', 'Vendido', 'Sobrando']],
             body: Array.from(document.querySelectorAll('#production-table tbody tr')).map(row => {
                 return [
                     row.cells[0].textContent,
                     row.querySelector('.production-time').value || '-',
                     row.querySelector('.produced').value || '0',
-                    row.querySelector('.crispness').value || '0',
                     row.querySelector('.sold').value || '0',
-                    row.querySelector('.remaining').textContent,
-                    row.querySelector('.notes').value || '-'
+                    row.querySelector('.remaining').textContent
                 ];
             }),
-            styles: { fontSize: 9 },
-            headStyles: { fillColor: [242, 242, 242], textColor: 0 },
-            alternateRowStyles: { fillColor: [249, 249, 249] },
-            margin: { left: 14 }
+            styles: { 
+                fontSize: 8,
+                cellPadding: 3
+            },
+            headStyles: { 
+                fillColor: [242, 242, 242],
+                textColor: 0,
+                fontSize: 8
+            },
+            margin: { left: 15, right: 15 }
         });
         
         // Resumo
         const finalY = doc.lastAutoTable.finalY + 10;
-        doc.setFontSize(14);
-        doc.text('Resumo do Dia', 14, finalY);
-        
         doc.setFontSize(12);
-        doc.text(`Total Produzido: ${document.getElementById('total-produced').textContent}`, 14, finalY + 8);
-        doc.text(`Total Vendido: ${document.getElementById('total-sold').textContent}`, 14, finalY + 16);
-        doc.text(`Total Sobrando: ${document.getElementById('total-remaining').textContent}`, 14, finalY + 24);
-        doc.text(`Taxa de Venda: ${document.getElementById('sale-rate').textContent}`, 14, finalY + 32);
-        doc.text(`Média Crocância: ${document.getElementById('avg-crispness').textContent}`, 14, finalY + 40);
-        doc.text(`Eficiência de Produção: ${document.getElementById('efficiency').textContent}`, 14, finalY + 48);
+        doc.text('Resumo do Dia', 15, finalY);
+        
+        doc.setFontSize(10);
+        doc.text(`Total Produzido: ${document.getElementById('total-produced').textContent}`, 20, finalY + 8);
+        doc.text(`Total Vendido: ${document.getElementById('total-sold').textContent}`, 20, finalY + 14);
+        doc.text(`Total Sobrando: ${document.getElementById('total-remaining').textContent}`, 20, finalY + 20);
+        doc.text(`Taxa de Venda: ${document.getElementById('sale-rate').textContent}`, 20, finalY + 26);
+        doc.text(`Eficiência: ${document.getElementById('efficiency').textContent}`, 20, finalY + 32);
         
         // Sugestões se houver sobras
         if (document.getElementById('suggestions-box').style.display !== 'none') {
-            const suggestionsY = finalY + 58;
-            doc.setFontSize(14);
-            doc.text('Sugestões para Reduzir Sobras', 14, suggestionsY);
+            const suggestionsY = finalY + 40;
+            doc.setFontSize(12);
+            doc.text('Sugestões para Reduzir Sobras', 15, suggestionsY);
             
-            doc.setFontSize(11);
+            doc.setFontSize(9);
             const suggestions = document.querySelectorAll('#suggestions-list .suggestion-item');
             let currentY = suggestionsY + 8;
             
             suggestions.forEach(suggestion => {
                 const text = suggestion.textContent.trim();
-                if (currentY > 280) {
+                if (currentY > 270) {
                     doc.addPage();
                     currentY = 20;
                 }
                 
-                doc.text(`• ${text}`, 20, currentY);
-                currentY += 8;
+                doc.text(`• ${text}`, 20, currentY, { maxWidth: 170 });
+                currentY += 6;
             });
         }
         
         // Data e hora
-        doc.setFontSize(10);
-        doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 285, { align: 'left' });
+        doc.setFontSize(8);
+        doc.text(`Gerado em: ${new Date().toLocaleString()}`, 15, 285, { align: 'left' });
         
         // Salvar PDF
         doc.save(`producao_pao_frances_${document.getElementById('date').value}.pdf`);
