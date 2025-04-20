@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Inteligente de Produção de Pão Francês</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+   
+</head>
+<body>
+    <div class="container">
+        <h1>Controle Inteligente de Produção de Pão Francês</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="production">Produção</div>
+            <div class="tab" data-tab="analysis">Análise</div>
+            <div class="tab" data-tab="history">Histórico</div>
+        </div>
+        
+        <div class="tab-content active" id="production-tab">
+            <div class="info-section">
+                <div class="info-box">
+                    <label for="day">Dia da semana:</label>
+                    <select id="day">
+                        <option value="Segunda-feira">Segunda-feira</option>
+                        <option value="Terça-feira">Terça-feira</option>
+                        <option value="Quarta-feira">Quarta-feira</option>
+                        <option value="Quinta-feira">Quinta-feira</option>
+                        <option value="Sexta-feira">Sexta-feira</option>
+                        <option value="Sábado">Sábado</option>
+                        <option value="Domingo">Domingo</option>
+                    </select>
+                </div>
+                
+                <div class="info-box">
+                    <label for="date">Data:</label>
+                    <input type="date" id="date">
+                </div>
+                
+                <div class="info-box">
+                    <label for="temperature">Temperatura Ambiente (°C):</label>
+                    <input type="number" id="temperature" min="-10" max="50" step="0.1">
+                </div>
+                
+                <div class="info-box">
+                    <label>Promoção Ativa?</label>
+                    <div>
+                        <input type="radio" id="promotion-yes" name="promotion" value="Sim">
+                        <label for="promotion-yes">Sim</label>
+                        <input type="radio" id="promotion-no" name="promotion" value="Não" checked>
+                        <label for="promotion-no">Não</label>
+                    </div>
+                </div>
+            </div>
+            
+            <table id="production-table">
+                <thead>
+                    <tr>
+                        <th>Nº Formada</th>
+                        <th>Hora da Produção</th>
+                        <th>Qtde Produzida</th>
+                        <th>Tempo de Crocância (Sh)</th>
+                        <th>Qtde Vendida</th>
+                        <th>Qtde Sobrando</th>
+                        <th>Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><input type="time" class="production-time"></td>
+                        <td><input type="number" class="produced" min="0" step="1"></td>
+                        <td><input type="number" class="crispness" min="0" step="0.1"></td>
+                        <td><input type="number" class="sold" min="0" step="1"></td>
+                        <td class="remaining">0</td>
+                        <td><input type="text" class="notes"></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><input type="time" class="production-time"></td>
+                        <td><input type="number" class="produced" min="0" step="1"></td>
+                        <td><input type="number" class="crispness" min="0" step="0.1"></td>
+                        <td><input type="number" class="sold" min="0" step="1"></td>
+                        <td class="remaining">0</td>
+                        <td><input type="text" class="notes"></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><input type="time" class="production-time"></td>
+                        <td><input type="number" class="produced" min="0" step="1"></td>
+                        <td><input type="number" class="crispness" min="0" step="0.1"></td>
+                        <td><input type="number" class="sold" min="0" step="1"></td>
+                        <td class="remaining">0</td>
+                        <td><input type="text" class="notes"></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><input type="time" class="production-time"></td>
+                        <td><input type="number" class="produced" min="0" step="1"></td>
+                        <td><input type="number" class="crispness" min="0" step="0.1"></td>
+                        <td><input type="number" class="sold" min="0" step="1"></td>
+                        <td class="remaining">0</td>
+                        <td><input type="text" class="notes"></td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td><input type="time" class="production-time"></td>
+                        <td><input type="number" class="produced" min="0" step="1"></td>
+                        <td><input type="number" class="crispness" min="0" step="0.1"></td>
+                        <td><input type="number" class="sold" min="0" step="1"></td>
+                        <td class="remaining">0</td>
+                        <td><input type="text" class="notes"></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="summary">
+                <h3>Resumo do Dia</h3>
+                <div class="summary-item">
+                    <span>Total Produzido:</span>
+                    <span id="total-produced">0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Total Vendido:</span>
+                    <span id="total-sold">0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Total Sobrando:</span>
+                    <span id="total-remaining" class="highlight">0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Taxa de Venda:</span>
+                    <span id="sale-rate">0%</span>
+                </div>
+                <div class="summary-item">
+                    <span>Média Crocância:</span>
+                    <span id="avg-crispness">0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Eficiência de Produção:</span>
+                    <span id="efficiency">0%</span>
+                </div>
+            </div>
+            
+            <div class="suggestions" id="suggestions-box" style="display: none;">
+                <h3>Sugestões para Reduzir Sobras</h3>
+                <div id="suggestions-list"></div>
+            </div>
+            
+            <div class="action-buttons">
+                <div>
+                    <button id="add-row">Adicionar Formada (+)</button>
+                    <button id="save-data">Salvar Dados</button>
+                    <button id="reset" class="reset">Limpar Tudo</button>
+                </div>
+                <div>
+                    <button id="export-excel" class="export">Exportar Excel</button>
+                    <button id="export-pdf" class="export">Exportar PDF</button>
+                    <button id="print">Imprimir</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="analysis-tab">
+            <div class="chart-container">
+                <canvas id="production-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="waste-chart"></canvas>
+            </div>
+            <div class="suggestions">
+                <h3>Recomendações Baseadas em Dados</h3>
+                <div id="data-suggestions"></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="history-tab">
+            <div class="info-box">
+                <label for="history-date">Selecione uma data para carregar:</label>
+                <input type="date" id="history-date">
+                <button id="load-history">Carregar</button>
+            </div>
+            <div id="history-content"></div>
+        </div>
+    </div>
+
+</body>
+</html>
