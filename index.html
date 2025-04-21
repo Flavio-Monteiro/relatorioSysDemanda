@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,18 +10,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
-   
+
 </head>
+
 <body>
     <div class="container">
         <h1>Controle de Produção de Pão Francês</h1>
-        
+
         <div class="tabs mobile-scroll">
             <div class="tab active" data-tab="production">Produção</div>
             <div class="tab" data-tab="analysis">Análise</div>
             <div class="tab" data-tab="history">Histórico</div>
         </div>
-        
+
         <div class="tab-content active" id="production-tab">
             <div class="card">
                 <div class="row">
@@ -38,7 +40,7 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="col col-sm">
                         <div class="form-group">
                             <label for="date">Data:</label>
@@ -46,7 +48,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col col-sm">
                         <div class="form-group">
@@ -54,7 +56,7 @@
                             <input type="number" id="temperature" min="-10" max="50" step="0.1" class="form-control">
                         </div>
                     </div>
-                    
+
                     <div class="col col-sm">
                         <div class="form-group">
                             <label>Promoção Ativa?</label>
@@ -72,7 +74,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card">
                 <div class="table-responsive">
                     <table id="production-table">
@@ -81,27 +83,32 @@
                                 <th>Nº</th>
                                 <th>Hora</th>
                                 <th>Produzido</th>
-                                <th>Crocância</th>
+                                <th>Tempo de Crocância (h)</th>
+                                <th>Validade Crocância</th> <!-- Coluna única -->
                                 <th>Vendido</th>
                                 <th>Sobrando</th>
                                 <th>Obs</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Linha 1 -->
                             <tr>
                                 <td>1</td>
                                 <td><input type="time" class="form-control production-time"></td>
                                 <td><input type="number" class="form-control produced" min="0" step="1"></td>
-                                <td><input type="number" class="form-control crispness" min="0" step="0.1"></td>
+                                <td><input type="number" class="form-control crispness" min="0" step="0.1" placeholder="Ex: 3"></td>
+                                <td class="crispness-validity">-</td> <!-- Calculado automaticamente -->
                                 <td><input type="number" class="form-control sold" min="0" step="1"></td>
                                 <td class="remaining">0</td>
                                 <td><input type="text" class="form-control notes"></td>
                             </tr>
+                            <!-- Linhas 2 a 5 (padrão) -->
                             <tr>
                                 <td>2</td>
                                 <td><input type="time" class="form-control production-time"></td>
                                 <td><input type="number" class="form-control produced" min="0" step="1"></td>
                                 <td><input type="number" class="form-control crispness" min="0" step="0.1"></td>
+                                <td class="crispness-validity">-</td>
                                 <td><input type="number" class="form-control sold" min="0" step="1"></td>
                                 <td class="remaining">0</td>
                                 <td><input type="text" class="form-control notes"></td>
@@ -111,6 +118,7 @@
                                 <td><input type="time" class="form-control production-time"></td>
                                 <td><input type="number" class="form-control produced" min="0" step="1"></td>
                                 <td><input type="number" class="form-control crispness" min="0" step="0.1"></td>
+                                <td class="crispness-validity">-</td>
                                 <td><input type="number" class="form-control sold" min="0" step="1"></td>
                                 <td class="remaining">0</td>
                                 <td><input type="text" class="form-control notes"></td>
@@ -120,6 +128,7 @@
                                 <td><input type="time" class="form-control production-time"></td>
                                 <td><input type="number" class="form-control produced" min="0" step="1"></td>
                                 <td><input type="number" class="form-control crispness" min="0" step="0.1"></td>
+                                <td class="crispness-validity">-</td>
                                 <td><input type="number" class="form-control sold" min="0" step="1"></td>
                                 <td class="remaining">0</td>
                                 <td><input type="text" class="form-control notes"></td>
@@ -129,6 +138,7 @@
                                 <td><input type="time" class="form-control production-time"></td>
                                 <td><input type="number" class="form-control produced" min="0" step="1"></td>
                                 <td><input type="number" class="form-control crispness" min="0" step="0.1"></td>
+                                <td class="crispness-validity">-</td>
                                 <td><input type="number" class="form-control sold" min="0" step="1"></td>
                                 <td class="remaining">0</td>
                                 <td><input type="text" class="form-control notes"></td>
@@ -136,14 +146,14 @@
                         </tbody>
                     </table>
                 </div>
-                
+
                 <div class="btn-group">
                     <button id="add-row" class="btn btn-primary btn-sm">+ Formada</button>
                     <button id="save-data" class="btn btn-primary btn-sm">Salvar</button>
                     <button id="reset" class="btn btn-danger btn-sm">Limpar</button>
                 </div>
             </div>
-            
+
             <div class="card">
                 <h3>Resumo do Dia</h3>
                 <div class="summary-item">
@@ -171,19 +181,19 @@
                     <span id="efficiency">0%</span>
                 </div>
             </div>
-            
+
             <div class="card suggestions" id="suggestions-box" style="display: none;">
                 <h3>Sugestões para Reduzir Sobras</h3>
                 <div id="suggestions-list"></div>
             </div>
-            
+
             <div class="btn-group">
                 <button id="export-excel" class="btn btn-info">Exportar Excel</button>
                 <button id="export-pdf" class="btn btn-info">Exportar PDF</button>
                 <button id="print" class="btn btn-warning">Imprimir</button>
             </div>
         </div>
-        
+
         <div class="tab-content" id="analysis-tab">
             <div class="card">
                 <h3>Produção vs Vendas</h3>
@@ -191,20 +201,20 @@
                     <canvas id="production-chart"></canvas>
                 </div>
             </div>
-            
+
             <div class="card">
                 <h3>Evolução das Sobras</h3>
                 <div class="chart-container">
                     <canvas id="waste-chart"></canvas>
                 </div>
             </div>
-            
+
             <div class="card suggestions">
                 <h3>Recomendações</h3>
                 <div id="data-suggestions"></div>
             </div>
         </div>
-        
+
         <div class="tab-content" id="history-tab">
             <div class="card">
                 <div class="form-group">
@@ -219,7 +229,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card" id="history-content">
                 <div class="alert alert-info">
                     Selecione uma data para carregar os dados históricos
@@ -230,4 +240,5 @@
 
     <script src="main.js"></script>
 </body>
+
 </html>
