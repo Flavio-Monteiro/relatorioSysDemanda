@@ -361,9 +361,6 @@ label {
     }
 }
 
-
-
-
 /* Adicione ao seu CSS */
 .crispness-until.warning {
     color: #FF9800;
@@ -389,4 +386,55 @@ label {
     background-color: #FFEBEE; /* Vermelho claro */
     color: #C62828;
     font-weight: bold;
+}
+
+/* Estilos para o histórico */
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.history-summary {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+#history-table th {
+    white-space: nowrap;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.action-buttons .btn {
+    padding: 3px 6px;
+    font-size: 0.8rem;
+}
+
+.holiday-tag {
+    display: inline-block;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    background-color: #ffeb3b;
+    color: #000;
+}
+
+.holiday-input {
+    width: 70px;
+    padding: 3px;
+    font-size: 0.8rem;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
 }

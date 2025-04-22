@@ -84,7 +84,7 @@
                                 <th>Hora</th>
                                 <th>Produzido</th>
                                 <th>Tempo de Crocância (h)</th>
-                                <th>Validade Crocância</th> <!-- Coluna única -->
+                                <th>Validade Crocância</th>
                                 <th>Vendido</th>
                                 <th>Sobrando</th>
                                 <th>Obs</th>
@@ -97,7 +97,7 @@
                                 <td><input type="time" class="form-control production-time"></td>
                                 <td><input type="number" class="form-control produced" min="0" step="1"></td>
                                 <td><input type="number" class="form-control crispness" min="0" step="0.1" placeholder="Ex: 3"></td>
-                                <td class="crispness-validity">-</td> <!-- Calculado automaticamente -->
+                                <td class="crispness-validity">-</td>
                                 <td><input type="number" class="form-control sold" min="0" step="1"></td>
                                 <td class="remaining">0</td>
                                 <td><input type="text" class="form-control notes"></td>
@@ -217,22 +217,73 @@
 
         <div class="tab-content" id="history-tab">
             <div class="card">
-                <div class="form-group">
-                    <label for="history-date">Selecione uma data:</label>
-                    <div class="row">
-                        <div class="col" style="flex: 3;">
+                <div class="row">
+                    <div class="col col-sm">
+                        <div class="form-group">
+                            <label for="history-date">Filtrar por data:</label>
                             <input type="date" id="history-date" class="form-control">
                         </div>
-                        <div class="col" style="flex: 1;">
-                            <button id="load-history" class="btn btn-primary btn-block">Carregar</button>
+                    </div>
+                    <div class="col col-sm">
+                        <div class="form-group">
+                            <label for="history-day">Filtrar por dia:</label>
+                            <select id="history-day" class="form-control">
+                                <option value="">Todos</option>
+                                <option value="Segunda-feira">Segunda-feira</option>
+                                <option value="Terça-feira">Terça-feira</option>
+                                <option value="Quarta-feira">Quarta-feira</option>
+                                <option value="Quinta-feira">Quinta-feira</option>
+                                <option value="Sexta-feira">Sexta-feira</option>
+                                <option value="Sábado">Sábado</option>
+                                <option value="Domingo">Domingo</option>
+                            </select>
                         </div>
                     </div>
+                    <div class="col col-sm">
+                        <div class="form-group">
+                            <label for="history-promotion">Promoção:</label>
+                            <select id="history-promotion" class="form-control">
+                                <option value="">Todos</option>
+                                <option value="Sim">Com promoção</option>
+                                <option value="Não">Sem promoção</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button id="filter-history" class="btn btn-primary">Filtrar</button>
+                    <button id="reset-filters" class="btn btn-secondary">Limpar filtros</button>
+                    <button id="export-demand" class="btn btn-info">Exportar para Privisor</button>
                 </div>
             </div>
 
             <div class="card" id="history-content">
-                <div class="alert alert-info">
-                    Selecione uma data para carregar os dados históricos
+                <div class="history-header">
+                    <h3>Histórico Completo</h3>
+                    <div class="history-summary">
+                        <span id="total-records">0 registros encontrados</span>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Dia</th>
+                                <th>Produzido</th>
+                                <th>Vendido</th>
+                                <th>Sobras</th>
+                                <th>Taxa</th>
+                                <th>Promoção</th>
+                                <th>Feriado</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-data">
+                            <!-- Dados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

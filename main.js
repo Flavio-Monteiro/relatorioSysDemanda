@@ -4,6 +4,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const analysisTab = document.getElementById('analysis-tab');
     const historyTab = document.getElementById('history-tab');
 
+    // Variáveis globais
+    let allHistoryData = [];
+    let holidays = JSON.parse(localStorage.getItem('breadProductionHolidays') || '[]');
+    let productionChart = null;
+    let wasteChart = null;
+
     // Inicialização
     initApp();
 
@@ -25,6 +31,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Carregar dados salvos se existirem
         loadSavedData();
+
+        // Configurar aba de histórico
+        setupHistoryTab();
 
         // Event listeners
         setupEventListeners();
@@ -50,13 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tab.addEventListener('click', switchTab);
         });
 
-        // Histórico
-        document.getElementById('load-history').addEventListener('click', loadHistoryData);
-
-        // Salvar dados quando a página for fechada
-        window.addEventListener('beforeunload', saveData);
-
-        // ADICIONE AQUI OS NOVOS LISTENERS PARA CROCÂNCIA
+        // Crocância
         document.querySelectorAll('.crispness').forEach(input => {
             input.addEventListener('input', calculateCrispnessValidity);
         });
@@ -64,6 +67,122 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.production-time').forEach(input => {
             input.addEventListener('change', calculateCrispnessValidity);
         });
+
+        // Salvar dados quando a página for fechada
+        window.addEventListener('beforeunload', saveData);
+    }
+
+    // Configurar aba de histórico
+    function setupHistoryTab() {
+        loadAllHistoryData();
+        document.getElementById('filter-history').addEventListener('click', filterHistoryData);
+        document.getElementById('reset-filters').addEventListener('click', resetHistoryFilters);
+        document.getElementById('export-demand').addEventListener('click', exportForDemandPrivisor);
+    }
+
+    // Carregar todos os dados históricos
+    function loadAllHistoryData() {
+        const savedData = JSON.parse(localStorage.getItem('breadProductionData') || {});
+        allHistoryData = [];
+        
+        Object.keys(savedData).forEach(date => {
+            const dayData = savedData[date];
+            let totalProduced = 0;
+            let totalSold = 0;
+            
+            dayData.batches.forEach(batch => {
+                totalProduced += parseFloat(batch.produced) || 0;
+                totalSold += parseFloat(batch.sold) || 0;
+            });
+            
+            const totalRemaining = totalProduced - totalSold;
+            const saleRate = totalProduced > 0 ? (totalSold / totalProduced * 100).toFixed(1) : 0;
+            const isHoliday = holidays.includes(date);
+            
+            allHistoryData.push({
+                date,
+                day: dayData.day,
+                produced: totalProduced,
+                sold: totalSold,
+                remaining: totalRemaining,
+                rate: saleRate,
+                promotion: dayData.promotion || 'Não',
+                temperature: dayData.temperature || '',
+                isHoliday,
+                fullData: dayData
+            });
+        });
+        
+        // Ordenar por data (mais recente primeiro)
+        allHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        renderHistoryTable(allHistoryData);
+    }
+
+    // Renderizar tabela de histórico
+    function renderHistoryTable(data) {
+        const tbody = document.getElementById('history-data');
+        tbody.innerHTML = '';
+        
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${formatDate(item.date)}</td>
+                <td>${item.day}</td>
+                <td>${item.produced}</td>
+                <td>${item.sold}</td>
+                <td class="${item.remaining > 0 ? 'highlight' : 'positive'}">${item.remaining}</td>
+                <td>${item.rate}%</td>
+                <td>${item.promotion}</td>
+                <td>
+                    <select class="holiday-input" data-date="${item.date}" 
+                        onchange="toggleHoliday(this)" title="Marcar como feriado">
+                        <option value="0" ${!item.isHoliday ? 'selected' : ''}>Não</option>
+                        <option value="1" ${item.isHoliday ? 'selected' : ''}>Sim</option>
+                    </select>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary btn-sm" onclick="editHistoryRecord('${item.date}')">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteHistoryRecord('${item.date}')">Excluir</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('total-records').textContent = `${data.length} registros encontrados`;
+    }
+
+    // Filtrar dados históricos
+    function filterHistoryData() {
+        const dateFilter = document.getElementById('history-date').value;
+        const dayFilter = document.getElementById('history-day').value;
+        const promotionFilter = document.getElementById('history-promotion').value;
+        
+        let filteredData = [...allHistoryData];
+        
+        if (dateFilter) {
+            filteredData = filteredData.filter(item => item.date === dateFilter);
+        }
+        
+        if (dayFilter) {
+            filteredData = filteredData.filter(item => item.day === dayFilter);
+        }
+        
+        if (promotionFilter) {
+            filteredData = filteredData.filter(item => item.promotion === promotionFilter);
+        }
+        
+        renderHistoryTable(filteredData);
+    }
+
+    // Resetar filtros do histórico
+    function resetHistoryFilters() {
+        document.getElementById('history-date').value = '';
+        document.getElementById('history-day').value = '';
+        document.getElementById('history-promotion').value = '';
+        renderHistoryTable(allHistoryData);
     }
 
     // Alternar entre abas
@@ -185,7 +304,6 @@ document.addEventListener('DOMContentLoaded', function () {
             <td><input type="time" class="form-control production-time"></td>
             <td><input type="number" class="form-control produced" min="0" step="1"></td>
             <td><input type="number" class="form-control crispness" min="0" step="0.1"></td>
-            <td class="crispness-until">-</td>
             <td class="crispness-validity">-</td>
             <td><input type="number" class="form-control sold" min="0" step="1"></td>
             <td class="remaining">0</td>
@@ -260,6 +378,9 @@ document.addEventListener('DOMContentLoaded', function () {
         savedData[productionData.date] = productionData;
         localStorage.setItem('breadProductionData', JSON.stringify(savedData));
 
+        // Atualizar histórico
+        loadAllHistoryData();
+
         // Feedback visual
         const saveBtn = document.getElementById('save-data');
         saveBtn.textContent = 'Salvo!';
@@ -301,98 +422,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Recalcular
             calculateRemaining();
-            calculateCrispnessValidity(); // Adicione esta linha
-
-        }
-
-
-    }
-
-    // Carregar dados históricos
-    function loadHistoryData() {
-        const date = document.getElementById('history-date').value;
-        const savedData = JSON.parse(localStorage.getItem('breadProductionData') || '{}');
-
-        const historyContent = document.getElementById('history-content');
-
-        if (savedData[date]) {
-            const data = savedData[date];
-
-            let html = `
-                <h3>Dados de ${date} (${data.day})</h3>
-                <div class="summary-item">
-                    <span>Temperatura:</span>
-                    <span>${data.temperature || 'N/A'}°C</span>
-                </div>
-                <div class="summary-item">
-                    <span>Promoção Ativa:</span>
-                    <span>${data.promotion || 'N/A'}</span>
-                </div>
-                
-                <div class="table-responsive" style="margin-top: 15px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nº</th>
-                                <th>Hora</th>
-                                <th>Produzido</th>
-                                <th>Vendido</th>
-                                <th>Sobrando</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            let totalProduced = 0;
-            let totalSold = 0;
-            let totalRemaining = 0;
-
-            data.batches.forEach(batch => {
-                totalProduced += parseFloat(batch.produced) || 0;
-                totalSold += parseFloat(batch.sold) || 0;
-                totalRemaining += parseFloat(batch.remaining) || 0;
-
-                html += `
-                    <tr>
-                        <td>${batch.batchNumber}</td>
-                        <td>${batch.productionTime || '-'}</td>
-                        <td>${batch.produced || '0'}</td>
-                        <td>${batch.sold || '0'}</td>
-                        <td class="${batch.remaining > 0 ? 'highlight' : 'positive'}">${batch.remaining || '0'}</td>
-                    </tr>
-                `;
-            });
-
-            const saleRate = totalProduced > 0 ? (totalSold / totalProduced * 100).toFixed(1) : 0;
-
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div style="margin-top: 15px;">
-                    <div class="summary-item">
-                        <span>Total Produzido:</span>
-                        <span>${totalProduced}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Total Vendido:</span>
-                        <span>${totalSold}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Total Sobrando:</span>
-                        <span class="${totalRemaining > 0 ? 'highlight' : 'positive'}">${totalRemaining}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Taxa de Venda:</span>
-                        <span>${saleRate}%</span>
-                    </div>
-                </div>
-            `;
-
-            historyContent.innerHTML = html;
-        } else {
-            historyContent.innerHTML = `<div class="alert alert-info">Nenhum dado encontrado para ${date}</div>`;
+            calculateCrispnessValidity();
         }
     }
 
@@ -430,11 +460,11 @@ document.addEventListener('DOMContentLoaded', function () {
         // Gráfico de produção vs vendas
         const productionCtx = document.getElementById('production-chart').getContext('2d');
 
-        if (window.productionChart) {
-            window.productionChart.destroy();
+        if (productionChart) {
+            productionChart.destroy();
         }
 
-        window.productionChart = new Chart(productionCtx, {
+        productionChart = new Chart(productionCtx, {
             type: 'bar',
             data: {
                 labels: last7Dates,
@@ -488,11 +518,11 @@ document.addEventListener('DOMContentLoaded', function () {
         // Gráfico de desperdício
         const wasteCtx = document.getElementById('waste-chart').getContext('2d');
 
-        if (window.wasteChart) {
-            window.wasteChart.destroy();
+        if (wasteChart) {
+            wasteChart.destroy();
         }
 
-        window.wasteChart = new Chart(wasteCtx, {
+        wasteChart = new Chart(wasteCtx, {
             type: 'line',
             data: {
                 labels: last7Dates,
@@ -723,12 +753,53 @@ document.addEventListener('DOMContentLoaded', function () {
         doc.save(`producao_pao_frances_${document.getElementById('date').value}.pdf`);
     }
 
+    // Exportar para Privisor de Demanda
+    function exportForDemandPrivisor() {
+        const filteredData = getFilteredHistoryData();
+        const workbook = XLSX.utils.book_new();
+        
+        // Preparar dados no formato específico para o Privisor
+        const privisorData = [
+            ['Data', 'Unidades Vendidas'],
+            ...filteredData.map(item => [item.date, item.sold])
+        ];
+        
+        const worksheet = XLSX.utils.aoa_to_sheet(privosorData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Dados_Privisor');
+        
+        // Gerar arquivo
+        XLSX.writeFile(workbook, `dados_vendas_para_privosor_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    // Obter dados filtrados do histórico
+    function getFilteredHistoryData() {
+        const dateFilter = document.getElementById('history-date').value;
+        const dayFilter = document.getElementById('history-day').value;
+        const promotionFilter = document.getElementById('history-promotion').value;
+        
+        let filteredData = [...allHistoryData];
+        
+        if (dateFilter) {
+            filteredData = filteredData.filter(item => item.date === dateFilter);
+        }
+        
+        if (dayFilter) {
+            filteredData = filteredData.filter(item => item.day === dayFilter);
+        }
+        
+        if (promotionFilter) {
+            filteredData = filteredData.filter(item => item.promotion === promotionFilter);
+        }
+        
+        return filteredData;
+    }
+
     // Imprimir
     function printPage() {
         window.print();
     }
 
-    //Calcular validade da crocancia // Adicione esta função para calcular a validade da crocância
+    // Calcular validade da crocância
     function calculateCrispnessValidity() {
         document.querySelectorAll('#production-table tbody tr').forEach(row => {
             const productionTime = row.querySelector('.production-time').value;
@@ -765,4 +836,92 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Formatar data
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR');
+    }
+
+    // Funções globais para uso no HTML
+    window.toggleHoliday = function(selectElement) {
+        const date = selectElement.getAttribute('data-date');
+        const isHoliday = selectElement.value === '1';
+        
+        if (isHoliday && !holidays.includes(date)) {
+            holidays.push(date);
+        } else if (!isHoliday) {
+            holidays = holidays.filter(d => d !== date);
+        }
+        
+        localStorage.setItem('breadProductionHolidays', JSON.stringify(holidays));
+        
+        // Atualizar o item correspondente no allHistoryData
+        const item = allHistoryData.find(item => item.date === date);
+        if (item) {
+            item.isHoliday = isHoliday;
+        }
+    };
+
+    window.editHistoryRecord = function(date) {
+        const record = allHistoryData.find(item => item.date === date);
+        if (record) {
+            // Preencher os campos do formulário com os dados do registro
+            document.getElementById('date').value = record.date;
+            document.getElementById('day').value = record.day;
+            document.getElementById('temperature').value = record.temperature || '';
+            document.getElementById(`promotion-${record.promotion === 'Sim' ? 'yes' : 'no'}`).checked = true;
+            
+            // Limpar as linhas existentes
+            const tbody = document.querySelector('#production-table tbody');
+            tbody.innerHTML = '';
+            
+            // Adicionar linhas com os dados do registro
+            record.fullData.batches.forEach((batch, index) => {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><input type="time" class="form-control production-time" value="${batch.productionTime || ''}"></td>
+                    <td><input type="number" class="form-control produced" min="0" step="1" value="${batch.produced || ''}"></td>
+                    <td><input type="number" class="form-control crispness" min="0" step="0.1" value="${batch.crispness || ''}"></td>
+                    <td class="crispness-validity">-</td>
+                    <td><input type="number" class="form-control sold" min="0" step="1" value="${batch.sold || ''}"></td>
+                    <td class="remaining">${batch.remaining || '0'}</td>
+                    <td><input type="text" class="form-control notes" value="${batch.notes || ''}"></td>
+                `;
+                tbody.appendChild(newRow);
+                
+                // Adicionar event listeners
+                newRow.querySelector('.produced').addEventListener('input', calculateRemaining);
+                newRow.querySelector('.sold').addEventListener('input', calculateRemaining);
+                newRow.querySelector('.crispness').addEventListener('input', calculateCrispnessValidity);
+                newRow.querySelector('.production-time').addEventListener('change', calculateCrispnessValidity);
+            });
+            
+            // Calcular valores
+            calculateRemaining();
+            calculateCrispnessValidity();
+            
+            // Mudar para a aba de produção
+            document.querySelectorAll('.tab, .tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector('.tab[data-tab="production"]').classList.add('active');
+            document.getElementById('production-tab').classList.add('active');
+            
+            alert(`Registro de ${formatDate(date)} carregado para edição.`);
+        }
+    };
+
+    window.deleteHistoryRecord = function(date) {
+        if (confirm(`Tem certeza que deseja excluir o registro de ${formatDate(date)}?`)) {
+            const savedData = JSON.parse(localStorage.getItem('breadProductionData') || '{}');
+            delete savedData[date];
+            localStorage.setItem('breadProductionData', JSON.stringify(savedData));
+            
+            // Atualizar a lista
+            loadAllHistoryData();
+            alert('Registro excluído com sucesso!');
+        }
+    };
 });
